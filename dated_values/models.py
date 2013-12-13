@@ -16,9 +16,7 @@ class DatedValue(models.Model):
 
     :_ctype: Will always be the same ctype as the type has.
     :date: The optional date, when this value applies.
-    :object: The related object. Note that ctype is stored on the
-      DatedValueType and only accesses through a custom property.
-      So when you query, you want to have that mind.
+    :object: The related object.
     :object_id: The id of the object, that this value is for.
     :type: The DatedValueType this value belongs to.
     :value: The decimal value, that is attached.
