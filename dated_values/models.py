@@ -14,6 +14,7 @@ class DatedValue(models.Model):
     """
     The value, that is attached to an object for a given date.
 
+    :_ctype: Will always be the same ctype as the type has.
     :date: The optional date, when this value applies.
     :object: The related object. Note that ctype is stored on the
       DatedValueType and only accesses through a custom property.
@@ -23,13 +24,18 @@ class DatedValue(models.Model):
     :value: The decimal value, that is attached.
 
     """
+    _ctype = models.ForeignKey(
+        ContentType,
+        verbose_name=_('Content Type'),
+    )
+
     date = models.DateField(
         verbose_name=_('Date'),
         blank=True, null=True,
     )
 
     object = generic.GenericForeignKey(
-        ct_field='ctype',
+        ct_field='_ctype',
         fk_field='object_id',
     )
 
@@ -59,10 +65,6 @@ class DatedValue(models.Model):
                     self.type.decimal_places)))
 
     @property
-    def ctype(self):
-        return self.type.ctype
-
-    @property
     def normal_value(self):
         """
         Returns the normalized value according to the settings in the type.
@@ -74,6 +76,10 @@ class DatedValue(models.Model):
     @normal_value.setter
     def normal_value(self, value):
         setattr(self, 'value', value)
+
+    def save(self, *args, **kwargs):
+        self._ctype = self.type.ctype
+        super(DatedValue, self).save(*args, **kwargs)
 
 
 class DatedValueType(TranslatableModel):
@@ -93,6 +99,7 @@ class DatedValueType(TranslatableModel):
     ctype = models.ForeignKey(
         ContentType,
         verbose_name=_('Content Type'),
+        unique=True,
     )
 
     decimal_places = models.PositiveIntegerField(

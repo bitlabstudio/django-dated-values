@@ -25,7 +25,7 @@ class DatedValueTestCase(TestCase):
         self.datedvalue.normal_value = Decimal('12.34')
         self.assertEqual(self.datedvalue.value, Decimal('12.34'))
         self.assertEqual(
-            self.datedvalue.ctype,
+            self.datedvalue._ctype,
             ContentType.objects.get_for_model(User))
 
     def test_clean(self):
