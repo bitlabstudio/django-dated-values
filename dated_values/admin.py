@@ -1,11 +1,8 @@
 """Admin classes for the dated_values app."""
-# from django.contrib import admin
+from django.contrib import admin
 
-# from . import models
+from .models import DatedValue, DatedValueType
 
 
-# class YourModelAdmin(admin.ModelAdmin):
-#    list_display = ['some', 'fields', ]
-#    search_fields = ['some', 'fieds', ]
-
-# admin.site.register(models.YourModel, YourModelAdmin)
+admin.site.register(DatedValue)
+admin.site.register(DatedValueType)
