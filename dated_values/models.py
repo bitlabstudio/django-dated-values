@@ -56,7 +56,7 @@ class DatedValue(models.Model):
         return '{0}: {1}'.format(self.type, self.normal_value)
 
     def clean(self):
-        if len(self.value.to_eng_string().split(
+        if self.value and len(self.value.to_eng_string().split(
                 '.')[1]) > self.type.decimal_places:
             raise ValidationError(_(
                 'The value can only have {0} decimal places.'.format(

@@ -40,6 +40,7 @@ install_requires = [
     'django',
     'south',
     'django-hvad',
+    'python-dateutil',
 ]
 
 
