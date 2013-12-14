@@ -68,8 +68,9 @@ class DatedValue(models.Model):
         Returns the normalized value according to the settings in the type.
 
         """
-        return getattr(self, 'value').quantize(Decimal(
-            '0' * 24 + '.' + '0' * self.type.decimal_places))
+        if self.value:
+            return getattr(self, 'value').quantize(Decimal(
+                '0' * 24 + '.' + '0' * self.type.decimal_places))
 
     @normal_value.setter
     def normal_value(self, value):
@@ -97,7 +98,6 @@ class DatedValueType(TranslatableModel):
     ctype = models.ForeignKey(
         ContentType,
         verbose_name=_('Content Type'),
-        unique=True,
     )
 
     decimal_places = models.PositiveIntegerField(

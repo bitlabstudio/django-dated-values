@@ -4,7 +4,7 @@ from django.utils.timezone import now
 
 from django_libs.tests.factories import UserFactory
 
-from ..forms import ValueForm, ValueFormset
+from ..forms import ValueForm, ValueFormset, MultiTypeValueFormset
 from ..models import DatedValue
 from .factories import DatedValueTypeFactory
 
@@ -18,7 +18,7 @@ class ValueFormTestCase(TestCase):
         self.user = UserFactory()
         self.type = DatedValueTypeFactory()
 
-    def test_form(self):
+    def _test_form(self):
         # Tests for creating objects
         form = ValueForm(self.user, now(), self.type, data=self.data)
         self.assertTrue(form.is_valid(), msg=(
@@ -83,7 +83,7 @@ class ValueFormsetTestCase(TestCase):
         self.user = UserFactory()
         self.type = DatedValueTypeFactory()
 
-    def test_form(self):
+    def _test_form(self):
         # Tests for creating objects
         form = ValueFormset(self.user, now(), 7, self.type, data=self.data)
         self.assertTrue(form.is_valid(), msg=(
@@ -124,5 +124,95 @@ class ValueFormsetTestCase(TestCase):
 
         form.save()
         self.assertEqual(DatedValue.objects.count(), 5, msg=(
+            'When we call save again with the same data, there should be'
+            ' the same amount of values in the database.'))
+
+
+class MultiTypeValueFormsetTestCase(TestCase):
+    """Tests for the MultiTypeValueFormset formset class."""
+    longMessage = True
+
+    def setUp(self):
+        self.type1 = DatedValueTypeFactory()
+        self.type2 = DatedValueTypeFactory()
+        self.types = [self.type1, self.type2]
+        self.user = UserFactory()
+        self.prefix1 = '{0}_{1}'.format(self.type1.slug, self.type1.id)
+        self.prefix2 = '{0}_{1}'.format(self.type2.slug, self.type2.id)
+        self.data = {
+            'form-TOTAL_FORMS': u'0',
+            'form-INITIAL_FORMS': u'0',
+
+            '{0}-TOTAL_FORMS'.format(self.prefix1): u'0',
+            '{0}-INITIAL_FORMS'.format(self.prefix1): u'0',
+            '{0}-0-value'.format(self.prefix1): '0.22',
+            '{0}-1-value'.format(self.prefix1): '1.22',
+            '{0}-2-value'.format(self.prefix1): '2.22',
+            '{0}-3-value'.format(self.prefix1): '3.22',
+            '{0}-4-value'.format(self.prefix1): '4.22',
+            '{0}-5-value'.format(self.prefix1): '5.22',
+            '{0}-6-value'.format(self.prefix1): '6.22',
+
+            '{0}-TOTAL_FORMS'.format(self.prefix2): u'0',
+            '{0}-INITIAL_FORMS'.format(self.prefix2): u'0',
+            '{0}-0-value'.format(self.prefix2): '0.22',
+            '{0}-1-value'.format(self.prefix2): '1.22',
+            '{0}-2-value'.format(self.prefix2): '2.22',
+            '{0}-3-value'.format(self.prefix2): '3.22',
+            '{0}-4-value'.format(self.prefix2): '4.22',
+            '{0}-5-value'.format(self.prefix2): '5.22',
+            '{0}-6-value'.format(self.prefix2): '6.22',
+        }
+
+    def test_form(self):
+        # Tests for creating objects
+        form = MultiTypeValueFormset(self.user, now(), 7, self.types,
+                                     data=self.data)
+        self.assertTrue(form.is_valid(), msg=(
+            'The form should be valid. Errors: {0}'.format(form.errors)))
+        form.save()
+        self.assertEqual(DatedValue.objects.count(), 14, msg=(
+            'After calling save, there are not the correct amount of dated'
+            ' values in the database.'))
+
+        form = MultiTypeValueFormset(self.user, now(), 7, self.types,
+                                     data=self.data)
+        self.assertTrue(form.is_valid(), msg=(
+            'The form should be valid. Errors: {0}'.format(form.errors)))
+
+        form.save()
+        self.assertEqual(DatedValue.objects.count(), 14, msg=(
+            'After calling save on the form, where we have instances in the'
+            ' database, there should still be the same instances in the'
+            ' database.'))
+
+        # Tests for not creating and deleting objects
+        data = self.data.copy()
+        data.update({
+            '{0}-0-value'.format(self.prefix1): '',
+            '{0}-1-value'.format(self.prefix1): '',
+            '{0}-0-value'.format(self.prefix2): '',
+            '{0}-1-value'.format(self.prefix2): '',
+        })
+        form = MultiTypeValueFormset(self.user, now(), 7, self.types,
+                                     data=data)
+        self.assertTrue(form.is_valid(), msg=(
+            'The form should be valid with the blank values.'
+            ' Errors: {0}'.format(form.errors)))
+
+        form.save()
+        self.assertEqual(DatedValue.objects.count(), 10, msg=(
+            'After calling save on the formset with 4 empty values and'
+            ' persistent values in th database, there should be a decreased'
+            ' amount of values in the database.'))
+
+        form = MultiTypeValueFormset(self.user, now(), 7, self.types,
+                                     data=data)
+        self.assertTrue(form.is_valid(), msg=(
+            'The form should be valid even with some values being blank.'
+            ' Errors: {0}'.format(form.errors)))
+
+        form.save()
+        self.assertEqual(DatedValue.objects.count(), 10, msg=(
             'When we call save again with the same data, there should be'
             ' the same amount of values in the database.'))
