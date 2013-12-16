@@ -1,12 +1,11 @@
 """URLs for the dated_values app."""
-# from django.conf.urls.defaults import patterns, url
+from django.conf.urls.defaults import patterns, url
 
-# from . import views
+from .views import ValuesManagementView
 
 
-# urlpatterns = patterns(
-#     '',
-#     url(r'^$',
-#         views.YourView.as_view(),
-#         name='dated_values_default'),
-# )
+urlpatterns = patterns(
+    '',
+    url(r'^(?P<ctype_id>\d+)/(?P<object_id>\d+)/$',
+        ValuesManagementView.as_view(), name='dated_values_management_view'),
+)

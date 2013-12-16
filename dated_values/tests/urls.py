@@ -7,5 +7,6 @@ admin.autodiscover()
 
 urlpatterns = patterns(
     '',
+    url(r'', include('dated_values.urls')),
     url(r'^admin/', include(admin.site.urls)),
 )
