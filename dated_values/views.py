@@ -18,13 +18,16 @@ class ValuesManagementView(FormView):
 
     def dispatch(self, request, *args, **kwargs):
         access_allowed = getattr(settings, 'ACCESS_ALLOWED')
-        if access_allowed(request.user):
-            try:
-                self.ctype = ContentType.objects.get_for_id(
-                    kwargs.get('ctype_id'))
-                self.object = self.ctype.get_all_objects_for_this_type().get(
-                    pk=kwargs.get('object_id'))
-            except ObjectDoesNotExist:
+        try:
+            self.ctype = ContentType.objects.get_for_id(
+                kwargs.get('ctype_id'))
+            self.object = self.ctype.get_all_objects_for_this_type().get(
+                pk=kwargs.get('object_id'))
+        except ObjectDoesNotExist:
+            raise Http404
+        if access_allowed(request.user, obj=self.object):
+            self.valuetypes = DatedValueType.objects.filter(ctype=self.ctype)
+            if len(self.valuetypes) == 0:
                 raise Http404
             self.date_str = request.GET.get('date') or request.POST.get('date')
             if self.date_str:
@@ -35,7 +38,8 @@ class ValuesManagementView(FormView):
             return super(ValuesManagementView, self).dispatch(
                 request, *args, **kwargs)
         return permission_required(super(ValuesManagementView, self).dispatch,
-                                   test_to_pass=access_allowed)(
+                                   test_to_pass=access_allowed,
+                                   obj=self.object)(
             request, *args, **kwargs)
 
     def form_valid(self, form):
@@ -48,7 +52,7 @@ class ValuesManagementView(FormView):
         kwargs.update({
             'obj': self.object,
             'date': self.date,
-            'valuetypes': DatedValueType.objects.filter(ctype=self.ctype),
+            'valuetypes': self.valuetypes,
         })
         return kwargs
 

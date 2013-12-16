@@ -1,6 +1,12 @@
 form.dated-values-form {
     width: 100%;
 }
+form.dated-values-inline-form {
+    display: inline;
+}
+input.dated-values-input {
+    width: 98%;
+}
 table.dated-values-table {
     width: 100%;
     table-layout: fixed;
@@ -10,7 +16,4 @@ table.dated-values-table th {
 }
 table.dated-values-table th.dated-values-table-title {
     font-size: 16px;
-}
-input.dated-values-input {
-    width: 98%;
 }

@@ -74,3 +74,9 @@ class ValuesManagementViewTestCase(ViewTestMixin, TestCase):
         self.assertEqual(DatedValue.objects.count(), 56, msg=(
             'When posting again with the same data, the amount of values in'
             ' the database should not have changed.'))
+
+        self.type1.delete()
+        self.type2.delete()
+        self.is_not_callable(message=(
+            'When there are no value types in the database, the view should'
+            ' not be callable.'))
