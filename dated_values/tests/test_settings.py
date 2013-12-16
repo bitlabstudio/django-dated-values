@@ -1,6 +1,8 @@
 """Settings that need to be set in order to run the tests."""
 import os
 
+gettext = lambda s: s
+
 DEBUG = True
 
 SITE_ID = 1
@@ -15,6 +17,14 @@ DATABASES = {
         'NAME': ':memory:',
     }
 }
+
+LANGUAGES = [
+    ('en', gettext('English')),
+]
+
+# just so that we have a login url to redirect to. In the real application,
+# this would of course be different.
+LOGIN_URL = '/admin/'
 
 ROOT_URLCONF = 'dated_values.tests.urls'
 
@@ -48,6 +58,7 @@ EXTERNAL_APPS = [
     'django.contrib.sites',
     'django_jasmine',
     'django_nose',
+    'hvad',
 ]
 
 INTERNAL_APPS = [
