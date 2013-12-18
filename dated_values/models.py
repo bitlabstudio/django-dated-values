@@ -3,11 +3,84 @@ from decimal import Decimal
 
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import get_language, ugettext_lazy as _
 
+from hvad.descriptors import LanguageCodeAttribute, TranslatedAttribute
 from hvad.models import TranslatableModel, TranslatedFields
+
+
+# When using the TranslatableModel class, it still uses the default Django
+# related manager for some reason instead of the translation aware one. It
+# therefore returns only the untranslated/sharded model instance. When you
+# then call a custom descriptor, the descriptor itself will query for the
+# translation. Unfortunately the used querying method is fairly simple and if
+# there is no object for this language, we get no results. With this update,
+# we instead of showing nothing retrieve the english version as fallback,
+# since it is always the first to be created.
+
+class BetterTranslatedAttribute(TranslatedAttribute):
+    """
+    Customized TranslatedAttribute so that we fetch the english variant of the
+    attribute if the requested translation does not exist.
+
+    Basic translated attribute descriptor.
+
+    Proxies attributes from the shared instance to the translated instance.
+
+    """
+    def translation(self, instance):  # pragma: nocover
+
+        def get_translation(instance, language_code=None):
+            opts = instance._meta
+            if not language_code:
+                language_code = get_language()
+            accessor = getattr(instance, opts.translations_accessor)
+            try:
+                return accessor.get(language_code=language_code)
+            except ObjectDoesNotExist:
+                # doing a fallback in case the requested language doesn't exist
+                return accessor.get(language_code='en')
+
+        cached = getattr(instance, self.opts.translations_cache, None)
+        if not cached:
+            cached = get_translation(instance)
+            setattr(instance, self.opts.translations_cache, cached)
+        return cached
+
+
+class BetterTranslatedAttributeMixin(object):
+
+    @classmethod
+    def contribute_translations(cls, rel):
+        """
+        Contribute translations options to the inner Meta class and set the
+        descriptors.
+
+        This get's called from TranslatableModelBase.__new__
+        """
+        opts = cls._meta
+        opts.translations_accessor = rel.get_accessor_name()
+        opts.translations_model = rel.model
+        opts.translations_cache = '%s_cache' % rel.get_accessor_name()
+        trans_opts = opts.translations_model._meta
+
+        # Set descriptors
+        ignore_fields = [
+            'pk',
+            'master',
+            opts.translations_model._meta.pk.name,
+        ]
+        for field in trans_opts.fields:
+            if field.name in ignore_fields:
+                continue
+            if field.name == 'language_code':
+                attr = LanguageCodeAttribute(opts)
+            else:
+                attr = BetterTranslatedAttribute(opts, field.name)
+            setattr(cls, field.name, attr)
 
 
 class DatedValue(models.Model):
@@ -81,7 +154,7 @@ class DatedValue(models.Model):
         super(DatedValue, self).save(*args, **kwargs)
 
 
-class DatedValueType(TranslatableModel):
+class DatedValueType(BetterTranslatedAttributeMixin, TranslatableModel):
     """
     The type of a dated value and what model type it belongs to.
 
