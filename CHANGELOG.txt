@@ -1,5 +1,8 @@
 === (ongoing) ===
 
+
+=== 0.1.1 ===
+
 - Adding BetterTranslatedAttribute for hvad attributes
 
 === 0.1 ==
