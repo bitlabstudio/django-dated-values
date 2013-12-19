@@ -20,7 +20,8 @@ class ValuesForm(forms.Form):
         """
         super(ValuesForm, self).__init__(*args, **kwargs)
         values = DatedValue.objects.filter(
-            type=valuetype, date__gte=date,
+            type=valuetype, date__gte=date, object_id=obj.id,
+            _ctype=valuetype.ctype,
             date__lt=date + relativedelta(days=settings.DISPLAYED_ITEMS))
         self.valuetype = valuetype
         self.obj = obj
