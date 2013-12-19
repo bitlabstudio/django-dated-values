@@ -126,7 +126,8 @@ class DatedValue(models.Model):
     )
 
     def __unicode__(self):
-        return '{0}: {1}'.format(self.type, self.normal_value)
+        return '[{0}] {1} ({2}): {3}'.format(
+            self.date, self.object, self.type, self.normal_value)
 
     def clean(self):
         if self.value and len(self.value.to_eng_string().split(
@@ -152,6 +153,9 @@ class DatedValue(models.Model):
     def save(self, *args, **kwargs):
         self._ctype = self.type.ctype
         super(DatedValue, self).save(*args, **kwargs)
+
+    class Meta:
+        ordering = ['date', ]
 
 
 class DatedValueType(BetterTranslatedAttributeMixin, TranslatableModel):
