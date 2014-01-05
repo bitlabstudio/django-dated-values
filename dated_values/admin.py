@@ -6,5 +6,9 @@ from hvad.admin import TranslatableAdmin
 from .models import DatedValue, DatedValueType
 
 
-admin.site.register(DatedValue)
+class DatedValueAdmin(admin.ModelAdmin):
+    list_filter = ('type', )
+
+
+admin.site.register(DatedValue, DatedValueAdmin)
 admin.site.register(DatedValueType, TranslatableAdmin)

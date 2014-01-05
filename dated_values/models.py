@@ -130,11 +130,13 @@ class DatedValue(models.Model):
             self.date, self.object, self.type, self.normal_value)
 
     def clean(self):
-        if self.value and len(self.value.to_eng_string().split(
-                '.')[1]) > self.type.decimal_places:
-            raise ValidationError(_(
-                'The value can only have {0} decimal places.'.format(
-                    self.type.decimal_places)))
+        if self.value:
+            split_value = self.value.to_eng_string().split('.')
+            if len(split_value) > 1 and len(
+                    split_value[1]) > self.type.decimal_places:
+                raise ValidationError(_(
+                    'The value can only have {0} decimal places.'.format(
+                        self.type.decimal_places)))
 
     @property
     def normal_value(self):
