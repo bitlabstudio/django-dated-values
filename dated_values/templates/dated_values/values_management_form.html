@@ -25,15 +25,24 @@
                 {% endfor %}
             </tr>
             {% for valuesform in form.forms %}
-                <tr>
-                    <th>{{ valuesform.valuetype.name }}</th>
-                    {% for field in valuesform %}
-                        <td>
-                            {{ field.errors }}
-                            {{ field }}
-                        </td>
-                    {% endfor %}
-                </tr>
+                {% if not valuesform.valuetype.editable and not valuesform.valuetype.hidden %}
+                    <tr>
+                        <th>{{ valuesform.valuetype.name }}</th>
+                        {% for field in valuesform %}
+                            <td>{{ field.value }}</td>
+                        {% endfor %}
+                    </tr>
+                {% elif not valuesform.valuetype.hidden %}
+                    <tr>
+                        <th>{{ valuesform.valuetype.name }}</th>
+                        {% for field in valuesform %}
+                            <td>
+                                {{ field.errors }}
+                                {{ field }}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                {% endif %}
             {% empty %}
                 <p>{% trans "There are no value types for this object." %}</p>
             {% endfor %}

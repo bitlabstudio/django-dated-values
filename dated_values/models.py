@@ -168,6 +168,10 @@ class DatedValueType(BetterTranslatedAttributeMixin, TranslatableModel):
     :decimal_places: If you want to limit the decimal places, that the
       ``normal_value`` attribute outputs, you can specify an alternative here.
       Defaults to 2.
+    :editable: True, if the valuetype is editable by an admin. False will only
+      display them.
+    :hidden: True, if the type should not at all be displayed on the management
+      page.
     :slug: A unique identifier.
 
     translated:
@@ -195,6 +199,16 @@ class DatedValueType(BetterTranslatedAttributeMixin, TranslatableModel):
             verbose_name=_('Name'),
             max_length=256,
         )
+    )
+
+    editable = models.BooleanField(
+        verbose_name=_('Editable'),
+        default=True,
+    )
+
+    hidden = models.BooleanField(
+        verbose_name=_('Hidden'),
+        default=False,
     )
 
     def __unicode__(self):
