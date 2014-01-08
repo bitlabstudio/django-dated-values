@@ -60,10 +60,10 @@ class ValuesForm(forms.Form):
 
 class MultiTypeValuesFormset(forms.formsets.formset_factory(ValuesForm)):
     def __init__(self, obj, date, valuetypes, *args, **kwargs):
-        self.extra = 2
         self.obj = obj
         self.date = date
         self.valuetypes = valuetypes
+        self.extra = len(self.valuetypes)
         self.dates = [date + relativedelta(days=i) for i in range(
             0, settings.DISPLAYED_ITEMS)]
         super(MultiTypeValuesFormset, self).__init__(*args, **kwargs)
