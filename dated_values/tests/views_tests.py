@@ -33,6 +33,7 @@ class ValuesManagementViewTestCase(ViewTestMixin, TestCase):
         self.types = [self.type1, self.type2]
         self.user = UserFactory()
         self.staff = UserFactory(is_staff=True)
+        self.superuser = UserFactory(is_superuser=True)
         self.ctype = ContentType.objects.get_for_model(User)
         self.data = {
             'date': (now() + relativedelta(days=30)).strftime(
@@ -51,6 +52,7 @@ class ValuesManagementViewTestCase(ViewTestMixin, TestCase):
             user=self.user,
             and_redirects_to=self.get_login_url() + '?next=/4/1/')
         self.should_be_callable_when_authenticated(self.staff)
+        self.should_be_callable_when_authenticated(self.superuser)
 
         self.is_not_callable(
             kwargs={'ctype_id': self.ctype.id, 'object_id': 9001},

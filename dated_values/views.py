@@ -12,12 +12,24 @@ from .forms import MultiTypeValuesFormset
 from .models import DatedValueType
 
 
+def passes_test(user, obj):
+    """
+    Test method to pass for a user to get access.
+
+    Superuser auto-passes test.
+
+    """
+    access_allowed = getattr(settings, 'ACCESS_ALLOWED')
+    if user.is_superuser:
+        return True
+    return access_allowed(user, obj)
+
+
 class ValuesManagementView(FormView):
     template_name = 'dated_values/values_management_form.html'
     form_class = MultiTypeValuesFormset
 
     def dispatch(self, request, *args, **kwargs):
-        access_allowed = getattr(settings, 'ACCESS_ALLOWED')
         try:
             self.ctype = ContentType.objects.get_for_id(
                 kwargs.get('ctype_id'))
@@ -25,7 +37,7 @@ class ValuesManagementView(FormView):
                 pk=kwargs.get('object_id'))
         except ObjectDoesNotExist:
             raise Http404
-        if access_allowed(request.user, obj=self.object):
+        if passes_test(request.user, obj=self.object):
             self.valuetypes = DatedValueType.objects.filter(ctype=self.ctype)
             if len(self.valuetypes) == 0:
                 raise Http404
@@ -38,7 +50,7 @@ class ValuesManagementView(FormView):
             return super(ValuesManagementView, self).dispatch(
                 request, *args, **kwargs)
         return permission_required(super(ValuesManagementView, self).dispatch,
-                                   test_to_pass=access_allowed,
+                                   test_to_pass=passes_test,
                                    obj=self.object)(
             request, *args, **kwargs)
 
